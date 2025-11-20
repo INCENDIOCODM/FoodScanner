@@ -28,8 +28,12 @@ export default function ResultView({ analysis, onRetake }: ResultViewProps) {
 	};
 
 	return (
-		<View style={styles.container}>
-			<ScrollView contentContainerStyle={styles.scrollContent}>
+		<View style={[styles.container, 
+			{
+				backgroundColor: getHealthColor(analysis.healthClassification),
+			}	
+		]}>
+			<ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 				<Text style={styles.title}>Analysis Result</Text>
 
 				<View
@@ -48,6 +52,15 @@ export default function ResultView({ analysis, onRetake }: ResultViewProps) {
 						]}>
 						{analysis.healthClassification}
 					</Text>
+				</View>
+				<View style={styles.card}>
+					<Text style={styles.label}>Name</Text>
+					<Text style={styles.value}>{analysis.name}</Text>
+				</View>
+
+				<View style={styles.card}>
+					<Text style={styles.label}>Origin</Text>
+					<Text style={styles.value}>{analysis.origin}</Text>
 				</View>
 
 				<View style={styles.card}>
@@ -120,6 +133,8 @@ const styles = StyleSheet.create({
 		borderRadius: 12,
 		padding: 16,
 		marginBottom: 16,
+		flexDirection : "column",
+		justifyContent : "space-between",	
 		shadowColor: "#000",
 		shadowOffset: { width: 0, height: 2 },
 		shadowOpacity: 0.1,

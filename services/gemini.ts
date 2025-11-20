@@ -1,11 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Constants from "expo-constants";
 
-// TODO: Replace with your actual API Key
-const API_KEY = "AIzaSyA0z9QcgzKimAAsCxDUC2HiaPUd_dibm7w";
-
+const API_KEY = Constants.expoConfig?.extra?.googleApiKey;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 export interface FoodAnalysis {
+	name: string;
+	origin: string;
 	ingredients: string[];
 	calories: string;
 	healthClassification: "Healthy" | "Moderate" | "Unhealthy";
@@ -32,6 +33,8 @@ export const analyzeFoodImage = async (
 
       Return ONLY valid JSON in the following format:
       {
+		"name" : "name of the food",
+		"origin" : "origin of the food and the flag of the country (emoji)",
         "ingredients": ["item1", "item2"],
         "calories": "approx value",
         "healthClassification": "Healthy/Moderate/Unhealthy",
