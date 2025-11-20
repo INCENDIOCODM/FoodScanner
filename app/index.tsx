@@ -1,9 +1,12 @@
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
-import { useRef, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useRef, useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
-	Button,
+	SafeAreaView,
 	StyleSheet,
 	Text,
 	TouchableOpacity,
@@ -17,7 +20,24 @@ export default function App() {
 	const [permission, requestPermission] = useCameraPermissions();
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 	const [analysis, setAnalysis] = useState<FoodAnalysis | null>(null);
+	const [apiKey, setApiKey] = useState<string | null>(null);
 	const cameraRef = useRef<CameraView>(null);
+	const router = useRouter();
+
+	useFocusEffect(
+		useCallback(() => {
+			loadApiKey();
+		}, [])
+	);
+
+	const loadApiKey = async () => {
+		try {
+			const key = await AsyncStorage.getItem("gemini_api_key");
+			setApiKey(key);
+		} catch (error) {
+			console.error("Error loading API key:", error);
+		}
+	};
 
 	if (!permission) {
 		// Camera permissions are still loading.
@@ -31,7 +51,11 @@ export default function App() {
 				<Text style={styles.message}>
 					We need your permission to show the camera
 				</Text>
-				<Button onPress={requestPermission} title="grant permission" />
+				<TouchableOpacity
+					style={styles.permissionButton}
+					onPress={requestPermission}>
+					<Text style={styles.permissionButtonText}>Grant Permission</Text>
+				</TouchableOpacity>
 			</View>
 		);
 	}
@@ -41,6 +65,18 @@ export default function App() {
 	};
 
 	const takePicture = async () => {
+		if (!apiKey) {
+			Alert.alert(
+				"API Key Missing",
+				"Please configure your Google Gemini API Key in settings to scan food.",
+				[
+					{ text: "Cancel", style: "cancel" },
+					{ text: "Go to Settings", onPress: () => router.push("./settings") },
+				]
+			);
+			return;
+		}
+
 		if (cameraRef.current) {
 			try {
 				const photo = await cameraRef.current.takePictureAsync({
@@ -59,12 +95,17 @@ export default function App() {
 	};
 
 	const analyzeImage = async (base64: string) => {
+		if (!apiKey) return;
+
 		setIsAnalyzing(true);
 		try {
-			const result = await analyzeFoodImage(base64);
+			const result = await analyzeFoodImage(base64, apiKey);
 			setAnalysis(result);
 		} catch (error) {
-			Alert.alert("Error", "Failed to analyze food. Please try again.");
+			Alert.alert(
+				"Error",
+				"Failed to analyze food. Please check your API key and try again."
+			);
 		} finally {
 			setIsAnalyzing(false);
 		}
@@ -81,20 +122,32 @@ export default function App() {
 	return (
 		<View style={styles.container}>
 			<CameraView style={styles.camera} facing={facing} ref={cameraRef}>
-				<View style={styles.buttonContainer}>
-					<TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-						<Text style={styles.text}>Flip</Text>
-					</TouchableOpacity>
+				<SafeAreaView style={styles.safeArea}>
+					<View style={styles.header}>
+						<TouchableOpacity
+							style={styles.settingsButton}
+							onPress={() => router.push("./settings")}>
+							<Ionicons name="settings-outline" size={28} color="white" />
+						</TouchableOpacity>
+					</View>
 
-					<TouchableOpacity
-						style={styles.captureButton}
-						onPress={takePicture}
-						disabled={isAnalyzing}>
-						<View style={styles.captureInner} />
-					</TouchableOpacity>
+					<View style={styles.buttonContainer}>
+						<TouchableOpacity
+							style={styles.button}
+							onPress={toggleCameraFacing}>
+							<Ionicons name="camera-reverse-outline" size={32} color="white" />
+						</TouchableOpacity>
 
-					<View style={styles.spacer} />
-				</View>
+						<TouchableOpacity
+							style={styles.captureButton}
+							onPress={takePicture}
+							disabled={isAnalyzing}>
+							<View style={styles.captureInner} />
+						</TouchableOpacity>
+
+						<View style={styles.spacer} />
+					</View>
+				</SafeAreaView>
 
 				{isAnalyzing && (
 					<View style={styles.loadingOverlay}>
@@ -111,25 +164,52 @@ const styles = StyleSheet.create({
 	container: {
 		flex: 1,
 		justifyContent: "center",
+		backgroundColor: "black",
+	},
+	safeArea: {
+		flex: 1,
+		justifyContent: "space-between",
 	},
 	message: {
 		textAlign: "center",
 		paddingBottom: 10,
+		color: "white",
+	},
+	permissionButton: {
+		backgroundColor: "#2196F3",
+		padding: 10,
+		borderRadius: 5,
+		alignSelf: "center",
+	},
+	permissionButtonText: {
+		color: "white",
+		fontWeight: "bold",
 	},
 	camera: {
 		flex: 1,
 	},
+	header: {
+		flexDirection: "row",
+		justifyContent: "flex-end",
+		padding: 20,
+	},
+	settingsButton: {
+		padding: 8,
+		backgroundColor: "rgba(0,0,0,0.3)",
+		borderRadius: 20,
+	},
 	buttonContainer: {
-		flex: 1,
 		flexDirection: "row",
 		backgroundColor: "transparent",
-		margin: 64,
+		margin: 40,
 		justifyContent: "space-between",
-		alignItems: "flex-end",
+		alignItems: "center",
 	},
 	button: {
-		alignSelf: "flex-end",
 		alignItems: "center",
+		justifyContent: "center",
+		width: 50,
+		height: 50,
 	},
 	text: {
 		fontSize: 18,
@@ -137,22 +217,21 @@ const styles = StyleSheet.create({
 		color: "white",
 	},
 	captureButton: {
-		width: 70,
-		height: 70,
-		borderRadius: 35,
+		width: 80,
+		height: 80,
+		borderRadius: 40,
 		backgroundColor: "rgba(255, 255, 255, 0.3)",
 		justifyContent: "center",
 		alignItems: "center",
-		marginBottom: 20,
 	},
 	captureInner: {
-		width: 60,
-		height: 60,
-		borderRadius: 30,
+		width: 65,
+		height: 65,
+		borderRadius: 32.5,
 		backgroundColor: "white",
 	},
 	spacer: {
-		width: 40, // To balance the Flip button
+		width: 50, // To balance the Flip button
 	},
 	loadingOverlay: {
 		...StyleSheet.absoluteFillObject,

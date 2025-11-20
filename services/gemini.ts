@@ -1,8 +1,4 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import Constants from "expo-constants";
-
-const API_KEY = Constants.expoConfig?.extra?.googleApiKey;
-const genAI = new GoogleGenerativeAI(API_KEY);
 
 export interface FoodAnalysis {
 	name: string;
@@ -18,9 +14,14 @@ export interface FoodAnalysis {
 }
 
 export const analyzeFoodImage = async (
-	base64Image: string
+	base64Image: string,
+	apiKey: string
 ): Promise<FoodAnalysis> => {
 	try {
+		if (!apiKey) {
+			throw new Error("API Key is required");
+		}
+		const genAI = new GoogleGenerativeAI(apiKey);
 		const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
 		const prompt = `
