@@ -27,9 +27,10 @@ export const analyzeFoodImage = async (
       Analyze this food image and provide a structured JSON response.
       I need:
       1. List of ingredients (estimated).
-      2. Total calories (estimated).
+      2. Total calories (estimated, also don't show estimated written in the json file only show "5-10" not "5-10 estimated").
       3. Health classification (Healthy, Moderate, or Unhealthy).
       4. Macronutrients (Protein, Carbs, Fat) estimated.
+	  5. If the Origin is not known, make it global. or unknown.
 
       Return ONLY valid JSON in the following format:
       {
