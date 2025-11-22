@@ -5,6 +5,7 @@ export interface FoodAnalysis {
 	origin: string;
 	ingredients: string[];
 	calories: string;
+	quantity: string;
 	healthClassification: "Healthy" | "Moderate" | "Unhealthy";
 	macronutrients?: {
 		protein: string;
@@ -32,12 +33,14 @@ export const analyzeFoodImage = async (
       3. Health classification (Healthy, Moderate, or Unhealthy).
       4. Macronutrients (Protein, Carbs, Fat) estimated.
 	  5. If the Origin is not known, make it global. or unknown.
+	  6. Quantity of the food (estimated) in ml or grams or litre or kg (whatever is nearest according to image).
 
       Return ONLY valid JSON in the following format:
       {
 		"name" : "name of the food",
 		"origin" : "origin of the food and the flag of the country (emoji)",
         "ingredients": ["item1", "item2"],
+        "quantity": "quantity of the food",
         "calories": "approx value",
         "healthClassification": "Healthy/Moderate/Unhealthy",
         "macronutrients": {

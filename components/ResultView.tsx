@@ -64,6 +64,10 @@ export default function ResultView({ analysis, onRetake }: ResultViewProps) {
 				</View>
 
 				<View style={styles.card}>
+					<Text style={styles.label}>Quantity</Text>
+					<Text style={styles.value}>{analysis.quantity}</Text>
+				</View>
+				<View style={styles.card}>
 					<Text style={styles.label}>Calories</Text>
 					<Text style={styles.value}>{analysis.calories}</Text>
 				</View>
