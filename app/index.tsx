@@ -6,7 +6,6 @@ import { useCallback, useRef, useState } from "react";
 import {
 	ActivityIndicator,
 	Alert,
-	SafeAreaView,
 	StyleSheet,
 	Text,
 	TouchableOpacity,
@@ -14,6 +13,7 @@ import {
 } from "react-native";
 import ResultView from "../components/ResultView";
 import { analyzeFoodImage, FoodAnalysis } from "../services/gemini";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function App() {
 	const [facing, setFacing] = useState<CameraType>("back");
